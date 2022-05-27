@@ -1,5 +1,9 @@
 HELP.md
 target/
+data/**/*.txt
+data/**/*.zip
+data
+data/tmp
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
