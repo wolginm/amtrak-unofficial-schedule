@@ -1,0 +1,41 @@
+spring:
+    application:
+        name: Amtrak-Unofficial-Schedule
+
+schedule:
+    general:
+        font:
+            family: "Helvetica"
+            primary-color: "#002436"
+            secondary-color: "#fff"
+    header:
+        font:
+            primary-color: "#ffffff"
+            background-color: "#005983"
+    direction:
+        font:
+            font-size: "24"
+            primary-color: "#faa634"
+    timetable:
+        time:
+            font:
+                font-size: "12"
+                primary-color: "#000000"
+        station-major:
+            font:
+                font-size: "14"
+                primary-color: "#005581"
+        station-minor:
+            font:
+                font-size: "12"
+                primary-color: "#005581"
+        station-alt:
+            font:
+                font-size: "12"
+                primary-color: "#000000"
+
+amtrak:
+    gtfs-url: https://content.amtrak.com/
+    gtfs-uri: content/gtfs/GTFS.zip
+    temp-file: ./data/tmp/gtfs.zip
+    data-directory: ./data
