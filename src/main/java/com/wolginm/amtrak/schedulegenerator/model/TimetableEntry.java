@@ -16,4 +16,16 @@ public class TimetableEntry {
     private String stopId;
     private String stopName;
     private int stopOrder;
+
+    @Override
+    public boolean equals(Object o) {
+        TimetableEntry other = (TimetableEntry) o;
+
+        return o == null ? false 
+            :  this.getArrivalTime().compareTo(other.getArrivalTime()) == 0
+            && this.getDepartureTime().compareTo(other.getDepartureTime()) == 0
+            && this.getStopId().equalsIgnoreCase(other.getStopId())
+            && this.getStopName().equalsIgnoreCase(other.getStopName())
+            && this.getStopOrder() == other.getStopOrder();
+    }
 }

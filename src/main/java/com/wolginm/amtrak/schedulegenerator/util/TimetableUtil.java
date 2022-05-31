@@ -2,10 +2,10 @@ package com.wolginm.amtrak.schedulegenerator.util;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +19,9 @@ import com.wolginm.amtrak.schedulegenerator.model.Train;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class TimetableUtil {
 
@@ -42,17 +44,48 @@ public class TimetableUtil {
     }
 
     private Timetable generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
-        String routeName = consolidatedRoute.getRoute().getRoute_long_name();
-        List<String> stations = consolidatedRoute.getAllStopIds();
-        List<Train> services = new ArrayList<>();
         Timetable timetable;
+        boolean setStationOrder = false;
+        String routeName = consolidatedRoute.getRoute().getRoute_long_name();
+        List<Train> services = new ArrayList<>();
+        
+        Map<String, Map<Integer, Integer>> stations = new HashMap<>();
+            consolidatedRoute.getStopIds().forEach(entry -> stations.put(entry, new HashMap<>()));        
         String defaultFirstStation = consolidatedRoute.getTrips().get(0).getSchedule().next().getStop().getStop_id();
 
+        log.info("Begining conversion form ConsolidatedRoute to Timetable for route {}:{}", 
+            consolidatedRoute.getRoute().getRoute_id(), 
+            consolidatedRoute.getRoute().getRoute_long_name());
         for (Trip trip : consolidatedRoute.getTrips()) {
+
             services.add(this.generateTrainFromTrip(trip, defaultFirstStation));
+            
+            if (!setStationOrder ) {
+                Iterator<Stop> iterator = trip.getSchedule();
+                Stop stop = null;
+                int count = 0;
+                while (iterator.hasNext()) {
+                    stop = iterator.next();
+                    count ++;
+                }
+                if (count == consolidatedRoute.getMaxNumberOfStationPerDirection().get(trip.getDirectionId())) {
+                    iterator = trip.getSchedule();
+                    stop = null;
+                    while (iterator.hasNext()) {
+                        stop = iterator.next();
+                        stations.get(stop.getStop().getStop_id())
+                            .put(trip.getDirectionId(), 
+                                stop.getStopTimes().getStop_sequence());
+                        // stations.replace(stop.getStop().getStop_id(), 
+                        //     stop.getStopTimes().getStop_sequence());
+                    }
+                }
+            }
         }
 
         timetable = new Timetable();
+        timetable.setStartDate(consolidatedRoute.getTrips().get(0).getServiceDetails().getStartDate());
+        timetable.setEndDate(consolidatedRoute.getTrips().get(0).getServiceDetails().getEndDate());
         timetable.setRouteName(routeName);
         timetable.setServices(services);
         timetable.setStations(stations);
@@ -81,13 +114,18 @@ public class TimetableUtil {
                     currentStop.getStopTimes().getDeparture_time(), currentStop.getStop().getStop_id(),
                     currentStop.getStop().getStop_name(),
                     currentStop.getStopTimes().getStop_sequence()));
-        }   
+        }
 
         service = new Train();
-        service.setDirection(defaultStartStation.equalsIgnoreCase(defaultStation));
+        service.setWeekday(trip.getServiceDetails().isWeekday());
+        service.setSaturday(trip.getServiceDetails().isSaturday());
+        service.setSunday(trip.getServiceDetails().isSunday());
+        service.setDirection(trip.getDirectionId());
         service.setDepartureTime(departureTime);
         service.setTrainNumber(trip.getTripId());
         service.setSchedule(timetableEntries);
+        service.setDayScheduleStarts(trip.getServiceDetails().getStartDate());
+        service.setDayScheduleEnds(trip.getServiceDetails().getEndDate());
 
         return service;
     }

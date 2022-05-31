@@ -62,7 +62,7 @@ public class ScheduleController {
         headers.set("Status", "200");
         headers.set("Content-Type", "application/json");
 
-        Timetable timetable = this.scheduleGeneratorService.getTimetable(94);
+        Timetable timetable = this.scheduleGeneratorService.getTimetable(68);
         this.iViewSchedule.buildSchedule(timetable);
         
         return ResponseEntity
