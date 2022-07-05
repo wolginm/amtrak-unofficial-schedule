@@ -6,7 +6,10 @@ import java.net.URISyntaxException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.wolginm.amtrak.schedulegenerator.model.Timetable;
 import com.wolginm.amtrak.schedulegenerator.service.ScheduleGeneratorService;
+import com.wolginm.amtrak.schedulegenerator.util.TimetableUtil;
+import com.wolginm.amtrak.schedulegenerator.view.text.IViewSchedule;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 public class ScheduleController {
 
     private ScheduleGeneratorService scheduleGeneratorService;
+    private TimetableUtil timetableUtil;
+    private IViewSchedule iViewSchedule;
 
-    public ScheduleController(ScheduleGeneratorService scheduleGeneratorService) {
+    public ScheduleController(ScheduleGeneratorService scheduleGeneratorService,
+        TimetableUtil timetableUtil,
+        IViewSchedule iViewSchedule) {
         this.scheduleGeneratorService = scheduleGeneratorService;
+        this.timetableUtil = timetableUtil;
+        this.iViewSchedule = iViewSchedule;
     }
 
     @GetMapping("keystone")
@@ -42,6 +51,26 @@ public class ScheduleController {
             .body(objectMapper
                 .writerWithDefaultPrettyPrinter()
                 .writeValueAsString(this.scheduleGeneratorService.getRoute(94)));
+    }
+
+    @GetMapping("keystone-timetable")
+    public ResponseEntity<String> getKeystoneTimetable() throws JsonProcessingException, URISyntaxException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        URI uri = new URI("http://localhost:8080");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Status", "200");
+        headers.set("Content-Type", "application/json");
+
+        Timetable timetable = this.scheduleGeneratorService.getTimetable(68);
+        this.iViewSchedule.buildSchedule(timetable);
+        
+        return ResponseEntity
+            .created(uri)
+            .headers(headers)
+            .body(objectMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(timetable));
     }
 
 }
