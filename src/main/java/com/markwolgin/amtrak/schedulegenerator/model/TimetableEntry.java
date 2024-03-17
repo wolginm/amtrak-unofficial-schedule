@@ -1,4 +1,4 @@
-package com.wolginm.amtrak.schedulegenerator.model;
+package com.markwolgin.amtrak.schedulegenerator.model;
 
 import java.time.LocalTime;
 

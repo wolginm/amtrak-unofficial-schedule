@@ -1,13 +1,11 @@
-package com.wolginm.amtrak.schedulegenerator.service;
+package com.markwolgin.amtrak.schedulegenerator.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.wolginm.amtrak.data.models.consolidated.ConsolidatedRoute;
-import com.wolginm.amtrak.data.service.AmtrakDataService;
-import com.wolginm.amtrak.schedulegenerator.model.Timetable;
-import com.wolginm.amtrak.schedulegenerator.util.TimetableUtil;
-
+import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedRoute;
+import com.markwolgin.amtrak.schedulegenerator.util.TimetableUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,23 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ScheduleGeneratorService {
 
-    private AmtrakDataService amtrakDataService;
+
     private TimetableUtil timetableUtil;
 
     @Autowired
-    public ScheduleGeneratorService(AmtrakDataService amtrakDataService,
+    public ScheduleGeneratorService(
         TimetableUtil timetableUtil) {
-        this.amtrakDataService = amtrakDataService;
+
         this.timetableUtil = timetableUtil;
     }
 
 
     public List<ConsolidatedRoute> getRoute(int route) {
-        return this.amtrakDataService
-            .getRoutes()
-            .stream()
-            .filter((selected) -> selected.getRoute().getRoute_id() == route)
-            .collect(Collectors.toList());
+        return List.of();
     }
 
     public Timetable getTimetable(int route) {

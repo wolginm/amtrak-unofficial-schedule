@@ -5,17 +5,116 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.7</version>
+		<version>3.2.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.wolginm.amtrak</groupId>
+	<groupId>com.markwolgin</groupId>
 	<artifactId>schedule-generator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
 	<name>schedule-generator</name>
 	<description>Generates Amtrak Schedules</description>
+	<url>https://markwolgin.com</url>
+	<inceptionYear>2022</inceptionYear>
+	<organization>
+		<name>Football Supporters Group</name>
+		<url>https://markwolgin.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE v3</name>
+			<url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+			<distribution>repo</distribution>
+			<comments>Must include attribution to code and author if used.</comments>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>wolginm</id>
+			<name>Mark Wolgin</name>
+			<email>wolginmark@gmail.com</email>
+			<organization>Football Supporters Group</organization>
+			<organizationUrl>https://markwolgin.com</organizationUrl>
+			<roles>
+				<role>contributor</role>
+				<role>admin</role>
+			</roles>
+			<timezone>America/New_York</timezone>
+		</developer>
+		<developer>
+			<id>Ashton-Vault-Jenkins-Bot</id>
+			<name>bot</name>
+			<email>junkwolginmark@gmail.com</email>
+			<organization>Football Supporters Group</organization>
+			<organizationUrl>https://markwolgin.com</organizationUrl>
+			<roles>
+				<role>contributor</role>
+				<role>bot</role>
+			</roles>
+			<timezone>America/New_York</timezone>
+		</developer>
+	</developers>
+	<mailingLists>
+		<mailingList>
+			<name>Project Email</name>
+			<subscribe>wolginmark@gmail.com</subscribe>
+			<unsubscribe>wolginmark@gmail.com</unsubscribe>
+			<post>wolginmark@gmail.com</post>
+		</mailingList>
+	</mailingLists>
+	<prerequisites>
+		<maven>4.0.0</maven>
+	</prerequisites>
+
+	<scm>
+		<connection>scm:git:git@github.com:Football-Supporters-Group/amtrak-unofficial-schedule.git</connection>
+		<developerConnection>scm:git:git@github.com:Football-Supporters-Group/amtrak-unofficial-schedule.git</developerConnection>
+		<url>https://github.com/Football-Supporters-Group/amtrak-unofficial-schedule</url>
+		<tag>unofficial-schedule-0.0.1</tag>
+	</scm>
+	<issueManagement>
+		<system>Github Issues</system>
+		<url>https://github.com/Football-Supporters-Group/amtrak-unofficial-schedule/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>https://jenkins.ashton.vault.markwolgin.com/job/Football%20Supporters%20Group/job/amtrak-unofficial-schedule/</url>
+		<notifiers>
+			<notifier>
+				<type>Git Webhook</type>
+			</notifier>
+		</notifiers>
+	</ciManagement>
+
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>ossrh</id>
+			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<downloadUrl>https://github.com/Football-Supporters-Group/amtrak-unofficial-schedule/releases/</downloadUrl>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>unofficial-schedule</id>
+			<name>Amtrak Unofficial Schedule</name>
+			<url>https://github.com/Football-Supporters-Group/amtrak-unofficial-schedule</url>
+		</repository>
+	</repositories>
+
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
+		<maven.local.skip>false</maven.local.skip>
+		<maven.remote.skip>true</maven.remote.skip>
+		<mainClass>${project.groupId}.amtrak.schedulegenerator.ScheduleGeneratorApplication</mainClass>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -24,11 +123,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.wolginm.amtrak</groupId>
-			<artifactId>data</artifactId>
-			<version>0.1</version>
 		</dependency>
 
 		<dependency>
@@ -52,6 +146,32 @@
 		</dependency>
 
 		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>2.2.20</version>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-models</artifactId>
+			<version>2.2.20</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<version>6.0.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
@@ -68,6 +188,47 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>7.2.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<id>generate-amtrak-objects</id>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/AmtrakDataObjects.yml</inputSpec>
+							<generatorName>spring</generatorName>
+							<apiPackage>com.markwolgin.amtrak.schedulegenerator.models</apiPackage>
+							<modelPackage>com.markwolgin.amtrak.schedulegenerator.models</modelPackage>
+							<generateApis>false</generateApis>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<generateApiTests>false</generateApiTests>
+							<configOptions>
+								<basePackage>com.markwolgin.amtrak.schedulegenerator.models</basePackage>
+								<java11>true</java11>
+								<serializableModel>true</serializableModel>
+								<useSpringBoot3>true</useSpringBoot3>
+								<validateSpec>false</validateSpec>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>io.swagger.core.v3</groupId>
+						<artifactId>swagger-annotations</artifactId>
+						<version>2.2.20</version>
+					</dependency>
+					<dependency>
+						<groupId>io.swagger.core.v3</groupId>
+						<artifactId>swagger-models</artifactId>
+						<version>2.2.20</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

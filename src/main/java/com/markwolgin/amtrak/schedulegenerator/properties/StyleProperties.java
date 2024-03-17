@@ -1,4 +1,4 @@
-package com.wolginm.amtrak.schedulegenerator.properties;
+package com.markwolgin.amtrak.schedulegenerator.properties;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;

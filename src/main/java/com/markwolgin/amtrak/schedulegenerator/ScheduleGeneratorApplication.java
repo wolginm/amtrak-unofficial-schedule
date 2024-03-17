@@ -1,12 +1,9 @@
-package com.wolginm.amtrak.schedulegenerator;
-
-import com.wolginm.amtrak.data.EnableAmtrakData;
+package com.markwolgin.amtrak.schedulegenerator;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@EnableAmtrakData
 public class ScheduleGeneratorApplication {
 
 	public static void main(String[] args) {

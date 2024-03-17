@@ -1,7 +1,7 @@
-package com.wolginm.amtrak.schedulegenerator.view.text;
+package com.markwolgin.amtrak.schedulegenerator.view.text;
 
-import com.wolginm.amtrak.schedulegenerator.model.Timetable;
-import com.wolginm.amtrak.schedulegenerator.model.TimetableEntry;
+import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.model.TimetableEntry;
 
 public interface IViewSchedule {
     

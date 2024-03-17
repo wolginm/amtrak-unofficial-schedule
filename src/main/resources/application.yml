@@ -33,9 +33,3 @@ schedule:
             font:
                 font-size: "12"
                 primary-color: "#000000"
-
-amtrak:
-    gtfs-url: https://content.amtrak.com/
-    gtfs-uri: content/gtfs/GTFS.zip
-    temp-file: ./data/tmp/gtfs.zip
-    data-directory: ./data
