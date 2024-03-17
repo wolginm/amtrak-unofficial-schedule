@@ -11,10 +11,9 @@ import com.indvd00m.ascii.render.api.ICanvas;
 import com.indvd00m.ascii.render.api.IContextBuilder;
 import com.indvd00m.ascii.render.api.IRender;
 import com.indvd00m.ascii.render.elements.PseudoText;
-import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.model.TimetableFrame;
 import com.markwolgin.amtrak.schedulegenerator.model.TimetableEntry;
 
-import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedRoute;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +30,7 @@ public class TextSchedule implements IViewSchedule {
 
 
     @Override
-    public String buildSchedule(Timetable timetable) {
+    public String buildSchedule(TimetableFrame timetable) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.buildWeekdaySchedule(timetable));
         stringBuilder.append(this.buildSaturdaySchedule(timetable));
@@ -41,7 +40,7 @@ public class TextSchedule implements IViewSchedule {
     }
 
     @Override
-    public String buildWeekdaySchedule(Timetable timetable) {
+    public String buildWeekdaySchedule(TimetableFrame timetable) {
         LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
         List<String> trainOrder = trainListAsMap
             .keySet()
@@ -60,7 +59,7 @@ public class TextSchedule implements IViewSchedule {
     }
 
     @Override
-    public String buildSaturdaySchedule(Timetable timetable) {
+    public String buildSaturdaySchedule(TimetableFrame timetable) {
         LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
         List<String> trainOrder = trainListAsMap
             .keySet()
@@ -74,7 +73,7 @@ public class TextSchedule implements IViewSchedule {
     }
 
     @Override
-    public String buildSundaySchedule(Timetable timetable) {
+    public String buildSundaySchedule(TimetableFrame timetable) {
         LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
         List<String> trainOrder = trainListAsMap
             .keySet()

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.markwolgin.amtrak.schedulegenerator.service.ScheduleGeneratorService;
-import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.model.TimetableFrame;
 import com.markwolgin.amtrak.schedulegenerator.util.TimetableUtil;
 import com.markwolgin.amtrak.schedulegenerator.view.text.IViewSchedule;
 
@@ -63,7 +63,7 @@ public class ScheduleController {
         headers.set("Status", "200");
         headers.set("Content-Type", "application/json");
 
-        Timetable timetable = this.scheduleGeneratorService.getTimetable(68);
+        TimetableFrame timetable = this.scheduleGeneratorService.getTimetable(68);
         this.iViewSchedule.buildSchedule(timetable);
         
         return ResponseEntity
@@ -83,7 +83,7 @@ public class ScheduleController {
         headers.set("Status", "200");
         headers.set("Content-Type", "application/json");
 
-        Timetable timetable = this.scheduleGeneratorService.getTimetable(route);
+        TimetableFrame timetable = this.scheduleGeneratorService.getTimetable(route);
         this.iViewSchedule.buildSchedule(timetable);
         
         return ResponseEntity

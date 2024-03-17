@@ -2,7 +2,7 @@ package com.markwolgin.amtrak.schedulegenerator.util;
 
 import java.util.*;
 
-import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.model.TimetableFrame;
 
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedRoute;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
@@ -15,15 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class TimetableUtil {
 
-    Map<Integer, Timetable> timetableCache;
+    Map<Integer, TimetableFrame> timetableCache;
 
     @Autowired
     public TimetableUtil() {
         this.timetableCache = new HashMap<>();
     }
 
-    public Timetable buildTimetable(ConsolidatedRoute consolidatedRoute) {
-        Timetable timetable;
+    public TimetableFrame buildTimetable(ConsolidatedRoute consolidatedRoute) {
+        TimetableFrame timetable;
         if (!this.timetableCache.containsKey(Integer.valueOf(consolidatedRoute.getRouteId()))) {
             this.timetableCache.put(Integer.valueOf(consolidatedRoute.getRouteId()),
                 this.generateTimetableFromRoute(consolidatedRoute));
@@ -33,8 +33,8 @@ public class TimetableUtil {
         return timetable;
     }
 
-    private Timetable generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
-        Timetable timetable = null;
+    private TimetableFrame generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
+        TimetableFrame timetable = null;
         boolean setStationOrder = false;
         String routeName = consolidatedRoute.getRouteLongName();
         List<ConsolidatedTrip> services = new ArrayList<>();

@@ -1,9 +1,8 @@
 package com.markwolgin.amtrak.schedulegenerator.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.markwolgin.amtrak.schedulegenerator.model.Timetable;
+import com.markwolgin.amtrak.schedulegenerator.model.TimetableFrame;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedRoute;
 import com.markwolgin.amtrak.schedulegenerator.util.TimetableUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +29,9 @@ public class ScheduleGeneratorService {
         return List.of();
     }
 
-    public Timetable getTimetable(int route) {
+    public TimetableFrame getTimetable(int route) {
         List<ConsolidatedRoute> routes = this.getRoute(route);
-        Timetable timetable = null;
+        TimetableFrame timetable = null;
         if (routes.size() != 1) log.error("Number of routes found {} != 1", routes.size());
         else {
             timetable = this.timetableUtil.buildTimetable(routes.get(0));
