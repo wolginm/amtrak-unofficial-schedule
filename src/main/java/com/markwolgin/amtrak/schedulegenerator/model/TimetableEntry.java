@@ -1,6 +1,7 @@
 package com.markwolgin.amtrak.schedulegenerator.model;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,6 +12,8 @@ import lombok.Data;
 @Data
 public class TimetableEntry {
 
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss");
+
     /**
      * All trips valid or the day.
      */
@@ -18,7 +21,7 @@ public class TimetableEntry {
     /**
      * The order the trips will appear horizontally.
      */
-    private final Map<LocalTime, String> tripOrder;
+    private final TreeMap<LocalTime, String> tripOrder;
     private final boolean metaDirectionId;
 
     /**
@@ -35,7 +38,7 @@ public class TimetableEntry {
         this.tripOrder = new TreeMap<>();
 
         for (ConsolidatedTrip consTrip: possibleTrips.values()) {
-            this.tripOrder.put(LocalTime.parse(consTrip.getTripStops().get(0).getDepartureTime()), consTrip.getTripId());
+            this.tripOrder.put(LocalTime.parse(consTrip.getTripStops().get(0).getDepartureTime(), formatter), consTrip.getTripId());
         }
     }
 

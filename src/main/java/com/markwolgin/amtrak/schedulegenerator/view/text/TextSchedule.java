@@ -41,18 +41,18 @@ public class TextSchedule implements IViewSchedule {
 
     @Override
     public String buildWeekdaySchedule(TimetableFrame timetable) {
-        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
-        List<String> trainOrder = trainListAsMap
-            .keySet()
-            .stream()
-            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
-                            && (
-                                    trainListAsMap.get(train).getOperatingPattern().getMonday() ||
-                                    trainListAsMap.get(train).getOperatingPattern().getTuesday() ||
-                                    trainListAsMap.get(train).getOperatingPattern().getWednesday() ||
-                                    trainListAsMap.get(train).getOperatingPattern().getThursday() ||
-                                    trainListAsMap.get(train).getOperatingPattern().getFriday()))
-            .collect(Collectors.toList());
+//        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.();
+//        List<String> trainOrder = trainListAsMap
+//            .keySet()
+//            .stream()
+//            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
+//                            && (
+//                                    trainListAsMap.get(train).getOperatingPattern().getMonday() ||
+//                                    trainListAsMap.get(train).getOperatingPattern().getTuesday() ||
+//                                    trainListAsMap.get(train).getOperatingPattern().getWednesday() ||
+//                                    trainListAsMap.get(train).getOperatingPattern().getThursday() ||
+//                                    trainListAsMap.get(train).getOperatingPattern().getFriday()))
+//            .collect(Collectors.toList());
 
 //        return this.buildScheduleGeneral(timetable, trainOrder, trainListAsMap, "Weekday");
         return "";
@@ -60,13 +60,13 @@ public class TextSchedule implements IViewSchedule {
 
     @Override
     public String buildSaturdaySchedule(TimetableFrame timetable) {
-        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
-        List<String> trainOrder = trainListAsMap
-            .keySet()
-            .stream()
-            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
-                            && trainListAsMap.get(train).getOperatingPattern().getSaturday())
-            .collect(Collectors.toList());
+//        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
+//        List<String> trainOrder = trainListAsMap
+//            .keySet()
+//            .stream()
+//            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
+//                            && trainListAsMap.get(train).getOperatingPattern().getSaturday())
+//            .collect(Collectors.toList());
 
 //        return this.buildScheduleGeneral(timetable, trainOrder, trainListAsMap, "Saturday");
         return "";
@@ -74,20 +74,21 @@ public class TextSchedule implements IViewSchedule {
 
     @Override
     public String buildSundaySchedule(TimetableFrame timetable) {
-        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
-        List<String> trainOrder = trainListAsMap
-            .keySet()
-            .stream()
-            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
-                            && trainListAsMap.get(train).getOperatingPattern().getSunday())
-            .collect(Collectors.toList());
+//        LinkedHashMap<String, ConsolidatedTrip> trainListAsMap = timetable.reorderListToMapForTrain();
+//        List<String> trainOrder = trainListAsMap
+//            .keySet()
+//            .stream()
+//            .filter(train ->   trainListAsMap.get(train).getDirectionId() == 1
+//                            && trainListAsMap.get(train).getOperatingPattern().getSunday())
+//            .collect(Collectors.toList());
 //        return this.buildScheduleGeneral(timetable, trainOrder, trainListAsMap, "Sunday");
         return "";
     }
 
     @Override
     public String timetableEntry(TimetableEntry timetableEntry) {
-        return timetableEntry.getDepartureTime().format(this.timetable_entry_format);
+//        return timetableEntry.get().format(this.timetable_entry_format);
+        return "";
     }
 
     private String buildHeader(String routeName, Date startDate, Date endDate, String... serviceType) {
