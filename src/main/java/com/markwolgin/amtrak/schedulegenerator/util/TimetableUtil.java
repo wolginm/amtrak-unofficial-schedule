@@ -1,5 +1,6 @@
 package com.markwolgin.amtrak.schedulegenerator.util;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class TimetableUtil {
 
-    Map<Integer, TimetableFrame> timetableCache;
+    private Map<Integer, TimetableFrame> timetableCache;
+    private final OperatingPattern WEEKDAY = new OperatingPattern().monday(true).tuesday(true).wednesday(true).thursday(true).friday(true).saturday(false).sunday(false);
+    private final OperatingPattern WEEKEND = new OperatingPattern().monday(false).tuesday(false).wednesday(false).thursday(false).friday(false).saturday(true).sunday(true);
+    private final OperatingPattern SATURDAY = new OperatingPattern().monday(false).tuesday(false).wednesday(false).thursday(false).friday(false).saturday(true).sunday(false);
+    private final OperatingPattern SUNDAY = new OperatingPattern().monday(false).tuesday(false).wednesday(false).thursday(false).friday(false).saturday(false).sunday(true);
+    private final OperatingPattern ALL_WEEK = new OperatingPattern().monday(true).tuesday(true).wednesday(true).thursday(true).friday(true).saturday(true).sunday(true);
+
 
     @Autowired
     public TimetableUtil() {
@@ -37,16 +44,30 @@ public class TimetableUtil {
     }
 
     private TimetableFrame generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
+        for (ConsolidatedTrip trip : consolidatedRoute.getTripList().get().values()) {
+            log.debug("\t{}:{}\t{}", trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate().plusDays(6), (trip.getTripEffectiveOnDate().isBefore(LocalDate.now()) &&
+                    trip.getTripNoLongerEffectiveOnDate().plusDays(6).isAfter(LocalDate.now())) || (trip.getTripEffectiveOnDate().isEqual(LocalDate.now()) || trip.getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
+        }
+
         Map<Boolean, TimetableEntry> weekday = new HashMap<>(2);
         Map<Boolean, TimetableEntry> saturday = new HashMap<>(2);
         Map<Boolean, TimetableEntry> sunday = new HashMap<>(2);
 
-        TimetableFrame timetable = new TimetableFrame(consolidatedRoute.getRouteShortName(), consolidatedRoute.getRouteId(),
+
+        weekday.put(false, this.buildTimetableEntry(consolidatedRoute, WEEKDAY, false));
+        weekday.put(true, this.buildTimetableEntry(consolidatedRoute, WEEKDAY, true));
+
+        saturday.put(false, this.buildTimetableEntry(consolidatedRoute, SATURDAY, false));
+        saturday.put(true, this.buildTimetableEntry(consolidatedRoute, SATURDAY, true));
+
+        sunday.put(false, this.buildTimetableEntry(consolidatedRoute, SUNDAY, false));
+        sunday.put(true, this.buildTimetableEntry(consolidatedRoute, SUNDAY, true));
+        TimetableFrame timetable = new TimetableFrame(consolidatedRoute.getRouteLongName(), consolidatedRoute.getRouteId(),
                 weekday, saturday, sunday, consolidatedRoute.getStopOrder(), consolidatedRoute.getAllStops().get());
 
         String defaultFirstStation = consolidatedRoute.getStopOrder().get(0);
 
-        log.info("Begining conversion form ConsolidatedRoute to Timetable for route {}:{}:",
+        log.info("Beginning conversion form ConsolidatedRoute to Timetable for route {}:{}:{}",
             consolidatedRoute.getRouteId(),
             consolidatedRoute.getRouteShortName(), consolidatedRoute.getRouteLongName());
 
@@ -60,14 +81,12 @@ public class TimetableUtil {
                 .entrySet()
                 .stream()
                 .filter(entry -> {
-            return (entry.getValue().getOperatingPattern().getMonday().equals(matchingPattern.getMonday()) &&
-                    entry.getValue().getOperatingPattern().getTuesday().equals(matchingPattern.getTuesday()) &&
-                    entry.getValue().getOperatingPattern().getWednesday().equals(matchingPattern.getWednesday()) &&
-                    entry.getValue().getOperatingPattern().getThursday().equals(matchingPattern.getThursday()) &&
-                    entry.getValue().getOperatingPattern().getFriday().equals(matchingPattern.getFriday()) &&
-                    entry.getValue().getOperatingPattern().getSaturday().equals(matchingPattern.getSaturday()) &&
-                    entry.getValue().getOperatingPattern().getSunday().equals(matchingPattern.getSunday()) &&
-                    ((entry.getValue().getDirectionId() == 1) == direction));
+            return (entry.getValue().getOperatingPattern().equals(matchingPattern)) &&
+                    ((entry.getValue().getDirectionId() == 1) == direction) &&
+                    ((entry.getValue().getTripEffectiveOnDate().isBefore(LocalDate.now()) &&
+                            entry.getValue().getTripNoLongerEffectiveOnDate().plusDays(6).isAfter(LocalDate.now())) ||
+                                (entry.getValue().getTripEffectiveOnDate().isEqual(LocalDate.now()) ||
+                                        entry.getValue().getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
                 consolidatedRoute.getStopOrder(),
                 direction);

@@ -2,6 +2,9 @@ spring:
     application:
         name: Amtrak-Unofficial-Schedule
 
+server:
+    port: 8081
+
 schedule:
     general:
         font:
@@ -33,3 +36,20 @@ schedule:
             font:
                 font-size: "12"
                 primary-color: "#000000"
+
+amtrak:
+    retry-enabled: true
+    data:
+        schema:             http
+        host:               //localhost:8080
+        path:               /v1/route?ids=%d
+        web-client:
+            connectionTimeoutInMilliseconds: 60000
+            responseTimeoutInMilliseconds: 60000
+            readTimeoutInMilliseconds: 60000
+            writeTimeoutInMilliseconds: 60000
+        retry:
+            maxRetryCount: 1
+            delay: 1000
+            maxDelay: 10000
+            multiplier: 1.2

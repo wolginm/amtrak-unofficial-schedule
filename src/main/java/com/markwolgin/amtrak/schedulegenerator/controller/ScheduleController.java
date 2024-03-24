@@ -51,7 +51,7 @@ public class ScheduleController {
             .headers(headers)
             .body(objectMapper
                 .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(this.scheduleGeneratorService.getRoute(94)));
+                .writeValueAsString(this.scheduleGeneratorService.getTimetable(94)));
     }
 
     @GetMapping("keystone-timetable")
@@ -63,8 +63,10 @@ public class ScheduleController {
         headers.set("Status", "200");
         headers.set("Content-Type", "application/json");
 
-        TimetableFrame timetable = this.scheduleGeneratorService.getTimetable(68);
-        this.iViewSchedule.buildSchedule(timetable);
+        TimetableFrame timetable = this.scheduleGeneratorService.getTimetable(94);
+        String schedule = this.iViewSchedule.buildSchedule(timetable);
+
+        log.info(schedule);
         
         return ResponseEntity
             .created(uri)
