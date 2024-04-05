@@ -30,7 +30,14 @@ public class TextSchedule implements IViewSchedule {
     private final String station_horizontial_format
         = "| %s | %s |";
 
+    private final int DEFAULT_MAX_LENGTH = 8;
+    private final int DEFAULT_BAR_LENGTH = DEFAULT_MAX_LENGTH + 4;
 
+    /**
+     * Builds the general schedule, Weekday, Saturday, and Sunday; in both directions.
+     * @param timetable {@link TimetableFrame} holding all {@link TimetableEntry}s.
+     * @return          The composite schedule.
+     */
     @Override
     public String buildSchedule(TimetableFrame timetable) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -53,7 +60,8 @@ public class TextSchedule implements IViewSchedule {
         List<String> trainOrder = entry.getTripOrder().navigableKeySet().stream()
                 .map(key -> entry.getTripOrder().get(key)).toList();
 
-        return this.buildScheduleGeneral(timetable, trainOrder, trainListAsMap, "");
+        return this.buildScheduleGeneral(timetable, trainOrder, trainListAsMap,
+                "Weekday %s".formatted(direction ? "North/East" : "South/West"), direction);
     }
 
     @Override
@@ -89,7 +97,34 @@ public class TextSchedule implements IViewSchedule {
         return "";
     }
 
-    private String buildTitleCard(String routeName, LocalDate startDate, LocalDate endDate, String... serviceType) {
+    /**
+     * Builds a 'Title card' for the text based report.<br>
+     * Like the one below,<br>
+     * <pre>
+     *  █   █                     █                              ███
+     *  █  █                      █                             █   █
+     *  █ █    ███  █   █   ████ ████   ███  █ ██   ███         █      ███   ████ █   █   ██    ███   ███
+     *  ██    █   █  █ █   █      █    █   █ ██  █ █   █         ███  █   █  █  █  █ █     █   █     █   █
+     *  █ █   █████  █ █    ████  █    █   █ █   █ █████            █ █████  █     █ █     █   █     █████
+     *  █  █  █       █        █  █    █   █ █   █ █            █   █ █      █     █ █     █   █     █
+     *  █   █  ████   █    ████   ███   ███  █   █  ████         ███   ████  █      █    █████  ███   ████
+     *                █
+     *              ██
+     *
+     * Service Announcements!
+     * Starting: 2024-04-05
+     *   Ending: 2024-04-05
+     * </pre>
+     * @param routeName     The Common Name of the Service.
+     * @param startDate     Effective start date of the schedule.
+     * @param endDate       Last day when this data will be accurate.
+     * @param serviceType   Details about the service.
+     * @return              The pre-formatted string, to be written or printed.
+     */
+    private String buildTitleCard(final String routeName,
+                                  final LocalDate startDate,
+                                  final LocalDate endDate,
+                                  final String... serviceType) {
         IRender render = new Render();
 		IContextBuilder builder = render.newBuilder();
 		builder.width(routeName.length()*30).height(12);
@@ -108,13 +143,14 @@ public class TextSchedule implements IViewSchedule {
         return stringBuilder.toString();
     }
 
-    private String buildHeader(TimetableEntry timetableEntry, final Boolean direction) {
+    private String buildHeader(TimetableEntry timetableEntry,
+                               final Boolean direction) {
         StringBuilder header = new StringBuilder("");
         String trainBar = new String("");
         ConsolidatedTrip consolidatedTrip;
         NavigableSet<LocalTime> navigableSet = timetableEntry.getTripOrder().navigableKeySet();
 
-        AtomicInteger maxLength = new AtomicInteger(8);
+        AtomicInteger maxLength = new AtomicInteger(DEFAULT_MAX_LENGTH);
         timetableEntry.getPossibleTrips().values().stream().forEach(trip -> {
             if (Long.toString(trip.getTripShortName()).length() > maxLength.get()) {
                 maxLength.set(Long.toString(trip.getTripShortName()).length());
@@ -122,7 +158,7 @@ public class TextSchedule implements IViewSchedule {
         });
 
 
-        Integer barLength = 12;
+        int barLength = DEFAULT_BAR_LENGTH;
         String nextElement;
         trainBar = trainBar.concat("| STATION  |");
         // Map of Trip Time -> Trip
@@ -146,23 +182,36 @@ public class TextSchedule implements IViewSchedule {
         return header.toString();
     }
 
-    private String buildScheduleTimeEntries(final TimetableEntry timetableEntry, final List<String> stationOrder, final Boolean direction) {
+    /**
+     * Builds the 'meat and potatoes' of the schedule.  It makes a number of assumptions.<br>
+     * 1) We know, or can derive the spacing for each bar.<br>
+     * 2) There is a set of stations used, any train as a part of the {@link TimetableEntry} will stop
+     *  some or all of the stops.<br>
+     * 3) There is a default ordering, by departure time.
+     *
+     * @param timetableEntry    The {@link TimetableEntry} to build out.
+     * @param stationOrder      The order the stations will be listed in.
+     * @param direction         The direction the service is oppertating in.
+     * @return                  The formatted schedule.
+     */
+    private String buildScheduleTimeEntries(final TimetableEntry timetableEntry,
+                                            final List<String> stationOrder,
+                                            final Boolean direction) {
         String aggregate = "";
         StringBuilder current;
         Map<String, StopTimes> stopMap;
-        Integer barLength = 12;
+        int barLength = DEFAULT_BAR_LENGTH;
         ConsolidatedTrip consolidatedTrip;
 
-        // Flip station order in list if reversed direction.
-        if (!direction) {
+        // Flip station order in list (always why?).
             log.debug("Flipping station order.");
             Collections.reverse(stationOrder);
-        }
+
 
         NavigableSet<LocalTime> navigableSet = timetableEntry.getTripOrder().navigableKeySet();
         Map<String, StringBuilder> rows = new LinkedHashMap<>(timetableEntry.getPossibleTrips().size());
 
-        AtomicInteger maxLength = new AtomicInteger(8);
+        AtomicInteger maxLength = new AtomicInteger(DEFAULT_MAX_LENGTH);
         timetableEntry.getPossibleTrips().values().stream().forEach(trip -> {
             if (Long.toString(trip.getTripShortName()).length() > maxLength.get()) {
                 maxLength.set(Long.toString(trip.getTripShortName()).length());
@@ -196,16 +245,26 @@ public class TextSchedule implements IViewSchedule {
         return aggregate;
     }
 
-    private String buildScheduleGeneral(TimetableFrame timetable, List<String> trainOrder, Map<String, ConsolidatedTrip> trainListAsMap, final String announcements) {
+    /**
+     * A general way to build a schedule for text.
+     * @param timetable         {@link TimetableFrame} entire frame object.
+     * @param trainOrder        The order the trains will depart in.
+     * @param trainListAsMap    Map of service number to the trip.
+     * @param announcements     Any text/metadata wanted to be conveyed to the user.
+     * @param direction         The direction of travel.
+     * @return                  The specific, with title card and rest.
+     */
+    private String buildScheduleGeneral(final TimetableFrame timetable,
+                                        final List<String> trainOrder,
+                                        final Map<String, ConsolidatedTrip> trainListAsMap,
+                                        final String announcements,
+                                        final boolean direction) {
 
         StringBuilder canvas = new StringBuilder();
 
-        canvas.append(this.buildTitleCard(timetable.getScheduleName(), LocalDate.now(), LocalDate.now(), "Service Announcements!"));
-        canvas.append(this.buildHeader(timetable.getWeekdayTripMap().get(false), false));
-        canvas.append(this.buildScheduleTimeEntries(timetable.getWeekdayTripMap().get(false), timetable.getDefaultStationOrder(), false));
-
-        canvas.append(this.buildHeader(timetable.getWeekdayTripMap().get(true), true));
-        canvas.append(this.buildScheduleTimeEntries(timetable.getWeekdayTripMap().get(true), timetable.getDefaultStationOrder(), true));
+        canvas.append(this.buildTitleCard(timetable.getScheduleName(), LocalDate.now(), LocalDate.now(), announcements));
+        canvas.append(this.buildHeader(timetable.getWeekdayTripMap().get(direction), false));
+        canvas.append(this.buildScheduleTimeEntries(timetable.getWeekdayTripMap().get(direction), timetable.getDefaultStationOrder(), direction));;
 
         return canvas.toString();
     }

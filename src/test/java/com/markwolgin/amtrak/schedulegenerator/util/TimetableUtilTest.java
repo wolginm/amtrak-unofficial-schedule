@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.markwolgin.amtrak.schedulegenerator.model.TimetableFrame;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedResponseObject;
+import com.markwolgin.amtrak.schedulegenerator.view.text.TextSchedule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,8 @@ class TimetableUtilTest {
     @Test
     void testBuildTimetable() {
         TimetableFrame timetableFrame = this.timetableUtil.buildTimetable(this.consolidatedResponseObject.getRequestedConsolidatedRoutes().get().get("94"));
+        TextSchedule textSchedule = new TextSchedule();
+        System.out.println(textSchedule.buildSchedule(timetableFrame));
     }
 
 }
