@@ -33,7 +33,7 @@ class TimetableEntryTest {
         tripMap = new HashMap<>();
         tripMap.put("T001", new ConsolidatedTrip()
                 .operatingPattern(allWeek)
-                .directionId(1)
+                .directionId(0)
                 .routeId(routeId)
                 .serviceId(serviceId)
                 .tripId("T001")
@@ -47,7 +47,7 @@ class TimetableEntryTest {
 
         tripMap.put("T002", new ConsolidatedTrip()
                 .operatingPattern(allWeek)
-                .directionId(1)
+                .directionId(0)
                 .routeId(routeId)
                 .serviceId(serviceId)
                 .tripId("T002")
@@ -60,7 +60,7 @@ class TimetableEntryTest {
 
         tripMap.put("T003", new ConsolidatedTrip()
                 .operatingPattern(allWeek)
-                .directionId(1)
+                .directionId(0)
                 .routeId(routeId)
                 .serviceId(serviceId)
                 .tripId("T003")
@@ -75,11 +75,11 @@ class TimetableEntryTest {
 
             @Test
         void testTripOrderSort() {
-            TimetableEntry entry = new TimetableEntry(this.tripMap, null, true);
+            TimetableEntry entry = new TimetableEntry(this.tripMap, null, false, "AAC", "AAD");
             TreeMap<LocalTime, String> tripOrder = entry.getTripOrder();
             Set<LocalTime> sortedTimes = tripOrder.navigableKeySet();
-            Assertions.assertEquals(LocalTime.of(5, 40), sortedTimes.toArray()[0]);
-            Assertions.assertEquals(LocalTime.of(5, 50), sortedTimes.toArray()[1]);
-            Assertions.assertEquals(LocalTime.of(5, 58), sortedTimes.toArray()[2]);
+            Assertions.assertEquals(LocalTime.of(5, 59), sortedTimes.toArray()[0]);
+            Assertions.assertEquals(LocalTime.of(6, 5), sortedTimes.toArray()[1]);
+            Assertions.assertEquals(LocalTime.of(6, 8), sortedTimes.toArray()[2]);
         }
 }

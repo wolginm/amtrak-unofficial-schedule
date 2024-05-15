@@ -39333,7 +39333,9 @@
         "EWR",
         "NWK",
         "NYP"
-      ]
+      ],
+      "index_dir_zero":  "HAR",
+      "index_dir_one": "PHL"
     }
   },
   "timestamp": "2024-03-24T17:06:53.606767898Z"

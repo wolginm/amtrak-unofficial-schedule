@@ -89,6 +89,8 @@ public class TimetableUtil {
                                         entry.getValue().getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
                 consolidatedRoute.getStopOrder(),
-                direction);
+                direction,
+                consolidatedRoute.getIndexDirZero(),
+                consolidatedRoute.getIndexDirOne());
     }
 }

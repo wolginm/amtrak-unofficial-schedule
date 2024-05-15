@@ -457,6 +457,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StopId'
+        index_dir_zero:
+          description: A specific 'fixed' station that allows for sorting and building.
+          $ref: '#/components/schemas/StopId'
+        index_dir_one:
+          description: A specific 'fixed' station that allows for sorting and building.
+          $ref: '#/components/schemas/StopId'
       required:
         - route_id
         - route_short_name

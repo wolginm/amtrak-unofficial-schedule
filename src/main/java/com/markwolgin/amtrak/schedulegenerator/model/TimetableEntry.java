@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
+import com.markwolgin.amtrak.schedulegenerator.models.StopTimes;
 import lombok.Data;
 
 @Data
@@ -29,16 +30,32 @@ public class TimetableEntry {
      * @param possibleTrips     All valid trips.
      * @param completeTripList  The order of the trips on the day.
      * @param directionId       The direction of travel.
+     * @param zeroIndex         The starting station in the zero direction.
+     * @param oneIndex          The starting station in the one direction.
      */
     public TimetableEntry(final Map<String, ConsolidatedTrip> possibleTrips,
                           final List<String> completeTripList,
-                          final boolean directionId) {
+                          final boolean directionId,
+                          final String zeroIndex,
+                          final String oneIndex) {
         this.possibleTrips = possibleTrips;
         this.metaDirectionId = directionId;
         this.tripOrder = new TreeMap<>();
 
         for (ConsolidatedTrip consTrip: possibleTrips.values()) {
-            this.tripOrder.put(LocalTime.parse(consTrip.getTripStops().get(0).getDepartureTime(), formatter), consTrip.getTripId());
+            String departureTime = "";
+            for (StopTimes stop: consTrip.getTripStops()) {
+                if ((!directionId && stop.getStopId().equals(zeroIndex)) || (directionId && stop.getStopId().equals(oneIndex))) {
+                    departureTime = stop.getDepartureTime();
+                    break;
+                }
+            }
+            if (!directionId && departureTime.isEmpty()) {
+                departureTime = consTrip.getTripStops().get(0).getDepartureTime();
+            } else if (directionId && departureTime.isEmpty()) {
+                departureTime = consTrip.getTripStops().get(consTrip.getTripStops().size() - 1).getDepartureTime();
+            }
+            this.tripOrder.put(LocalTime.parse(departureTime, formatter), consTrip.getTripId());
         }
     }
 

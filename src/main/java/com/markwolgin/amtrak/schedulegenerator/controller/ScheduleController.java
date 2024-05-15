@@ -86,7 +86,7 @@ public class ScheduleController {
         headers.set("Content-Type", "application/json");
 
         TimetableFrame timetable = this.scheduleGeneratorService.getTimetable(route);
-        this.iViewSchedule.buildSchedule(timetable);
+        log.info(this.iViewSchedule.buildSchedule(timetable));
         
         return ResponseEntity
             .created(uri)
