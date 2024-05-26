@@ -27,11 +27,19 @@ public class TimetableUtil {
     private final OperatingPattern ALL_WEEK = new OperatingPattern().monday(true).tuesday(true).wednesday(true).thursday(true).friday(true).saturday(true).sunday(true);
 
 
+    /**
+     * Creates a cache to store all routes.
+     */
     @Autowired
     public TimetableUtil() {
         this.timetableCache = new HashMap<>();
     }
 
+    /**
+     * Builds a {@link TimetableFrame}.
+     * @param consolidatedRoute All routes to be analyzed.
+     * @return                  {@link TimetableFrame}.
+     */
     public TimetableFrame buildTimetable(ConsolidatedRoute consolidatedRoute) {
         TimetableFrame timetable;
         if (!this.timetableCache.containsKey(Integer.valueOf(consolidatedRoute.getRouteId()))) {
@@ -43,6 +51,11 @@ public class TimetableUtil {
         return timetable;
     }
 
+    /**
+     * Generates a {@link TimetableFrame} from a consolidated route.
+     * @param consolidatedRoute The route.
+     * @return                  {@link TimetableFrame}.
+     */
     private TimetableFrame generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
         for (ConsolidatedTrip trip : consolidatedRoute.getTripList().get().values()) {
             log.debug("\t{}:{}\t{}", trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate().plusDays(6), (trip.getTripEffectiveOnDate().isBefore(LocalDate.now()) &&
@@ -74,6 +87,13 @@ public class TimetableUtil {
         return timetable;
     }
 
+    /**
+     * Builds a {@link TimetableEntry} from a {@link ConsolidatedRoute}, {@link OperatingPattern}, and indicated direction.
+     * @param consolidatedRoute The route.
+     * @param matchingPattern   The opperating pattern to observe.
+     * @param direction         The direction of travel.
+     * @return                  {@link TimetableEntry}.
+     */
     private TimetableEntry buildTimetableEntry(final ConsolidatedRoute consolidatedRoute, final OperatingPattern matchingPattern, final boolean direction) {
         return new TimetableEntry(consolidatedRoute
                 .getTripList()
