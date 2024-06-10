@@ -1,12 +1,15 @@
 package com.markwolgin.amtrak.schedulegenerator.util;
 
+import com.markwolgin.amtrak.schedulegenerator.model.sets.Pair;
+import com.markwolgin.amtrak.schedulegenerator.model.sets.Range;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
 import com.markwolgin.amtrak.schedulegenerator.models.OperatingPattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 
 /**
  * To consolidate {@link com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip}s that are similar in form.
@@ -15,15 +18,95 @@ import java.util.Map;
 @Component
 public class ConsolidateTripUtil {
 
+    //TODO NEED TO UNIT TEST THE HOLY HELL OUT OF THIS MESSY MESS!  CHECK NOTABILITY NOTES FROM JUN 10 FOR DETAILS ON WHAT WAS
+    //  IN THIS CRACKED HEAD!!
+
+    /**
+     * Will aggregate all trips into the fewest common sets.
+     * Assumes that only one type of route is selected.
+     * @param consolidatedTripList  All trips in a route.
+     * @return                      Map of
+     */
     public List<ConsolidatedTrip> aggregateSimilarConsolidatedTrips(final List<ConsolidatedTrip> consolidatedTripList) {
 
-        Map<Integer, List<ConsolidatedTrip>> sortedConsolidatedTripsByHash = this.sortConsolidatedTripsByHash(consolidatedTripList);
+        Map<Integer, List<ConsolidatedTrip>> aggregatedTripListByCustomHash = buildTripsListByHash(consolidatedTripList);
 
-        return null;
+        List<ConsolidatedTrip> aggregate = new LinkedList<>();
+        for (Map.Entry<Integer, List<ConsolidatedTrip>> entry: aggregatedTripListByCustomHash.entrySet()) {
+            aggregate.addAll(this.createSuperConsolidatedTrip(entry.getValue()));
+        }
+
+        return aggregate;
     }
 
-    protected Map<Integer, List<ConsolidatedTrip>> sortConsolidatedTripsByHash(List<ConsolidatedTrip> consolidatedTripList) {
-        return null;
+    /**
+     * Will reduce the list to the smallest number of compliant entries.
+     * @param collapsable   A list of trips with the same stops and direction.
+     * @return              A list of size [0, n] | n is the size of {@code collapsable}.
+     */
+    protected List<ConsolidatedTrip> createSuperConsolidatedTrip(List<ConsolidatedTrip> collapsable) {
+        Map<ConsolidatedTrip, Range<LocalDate>> timeRanges = new HashMap<>(collapsable.size());
+        boolean domainCheck;
+        int lower, upper;
+
+        LocalDate offsetDate;
+
+        for (ConsolidatedTrip trip: collapsable) {
+            // Will run once!
+            if (timeRanges.isEmpty()) timeRanges.put(trip,
+                    new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
+
+            // Every other time.
+            for (Map.Entry<ConsolidatedTrip, Range<LocalDate>> entry: timeRanges.entrySet()) {
+                lower = entry.getValue().inDomain(trip.getTripEffectiveOnDate());
+                upper = entry.getValue().inDomain(trip.getTripNoLongerEffectiveOnDate());
+                domainCheck = lower >= 0 && upper <= 0;
+
+                //todo - need to add operating pattern to the check.
+                if (domainCheck) {
+                    timeRanges.put(trip, new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
+                } else if (!domainCheck) {
+                    offsetDate = trip.getTripEffectiveOnDate().minusDays(7);
+
+                    if (offsetDate.isEqual(entry.getValue().getSecond())) {
+                        entry.getValue().setSecond(trip.getTripNoLongerEffectiveOnDate());
+                    } else {
+                        timeRanges.put(trip, new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
+                    }
+                }
+            }
+        }
+
+        return timeRanges.entrySet().stream().map(entry -> {
+            entry.getKey().setTripEffectiveOnDate(entry.getValue().getFirst());
+            entry.getKey().setTripNoLongerEffectiveOnDate(entry.getValue().getSecond());
+            entry.getKey().setTripId(String.valueOf(entry.getKey().hashCode()).substring(0, 6));
+            return entry.getKey();
+        }).toList();
+    }
+
+    /**
+     * Will take a list of trips and sort them into a map by the custom hash
+     * {@link ConsolidateTripUtil#calculateCustomHashCode(ConsolidatedTrip)}
+     * @param consolidatedTripList  Input trips.
+     * @return                      Map of all similar trips.
+     */
+    protected Map<Integer, List<ConsolidatedTrip>> buildTripsListByHash(List<ConsolidatedTrip> consolidatedTripList) {
+        Map<Integer, List<ConsolidatedTrip>> aggregatedTripListByCustomHash = new TreeMap<>();
+        Integer swapHash;
+        for (ConsolidatedTrip tripOfTheDay: consolidatedTripList) {
+            swapHash = this.calculateCustomHashCode(tripOfTheDay);
+            if (!aggregatedTripListByCustomHash.containsKey(swapHash)) {
+                aggregatedTripListByCustomHash.put(swapHash, new LinkedList<>(List.of(tripOfTheDay)));
+            } else {
+                aggregatedTripListByCustomHash.get(swapHash).add(tripOfTheDay);
+            }
+        }
+        return aggregatedTripListByCustomHash;
+    }
+
+    protected Integer calculateCustomHashCode(final ConsolidatedTrip consolidatedTrip) {
+        return Objects.hash(consolidatedTrip.getDirectionId(), consolidatedTrip.getTripStops(), consolidatedTrip.getRouteId());
     }
 
      /**
@@ -46,5 +129,7 @@ public class ConsolidateTripUtil {
         }
         return ops;
     }
+
+
 
 }
