@@ -4,6 +4,7 @@ import com.markwolgin.amtrak.schedulegenerator.model.sets.Pair;
 import com.markwolgin.amtrak.schedulegenerator.model.sets.Range;
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
 import com.markwolgin.amtrak.schedulegenerator.models.OperatingPattern;
+import com.markwolgin.amtrak.schedulegenerator.models.StopTimes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -46,17 +47,35 @@ public class ConsolidateTripUtil {
      */
     protected List<ConsolidatedTrip> createSuperConsolidatedTrip(List<ConsolidatedTrip> collapsable) {
         Map<ConsolidatedTrip, Range<LocalDate>> timeRanges = new HashMap<>(collapsable.size());
+
         boolean domainCheck;
         int lower, upper;
 
         LocalDate offsetDate;
+        Range<LocalDate> range;
+        boolean needsANewTrip;
+
+        Collections.sort(collapsable, new Comparator<ConsolidatedTrip>() {
+            @Override
+            public int compare(ConsolidatedTrip consolidatedTrip, ConsolidatedTrip t1) {
+                if (consolidatedTrip.getTripEffectiveOnDate().isBefore(t1.getTripEffectiveOnDate())) {
+                    return -1;
+                } else if (consolidatedTrip.getTripEffectiveOnDate().isAfter(t1.getTripEffectiveOnDate())) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
 
         for (ConsolidatedTrip trip: collapsable) {
             // Will run once!
             if (timeRanges.isEmpty()) timeRanges.put(trip,
                     new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
-
+            range = timeRanges.get(trip);
             // Every other time.
+            lower = upper = 0;
+            needsANewTrip = false;
+
             for (Map.Entry<ConsolidatedTrip, Range<LocalDate>> entry: timeRanges.entrySet()) {
                 lower = entry.getValue().inDomain(trip.getTripEffectiveOnDate());
                 upper = entry.getValue().inDomain(trip.getTripNoLongerEffectiveOnDate());
@@ -64,16 +83,21 @@ public class ConsolidateTripUtil {
 
                 //todo - need to add operating pattern to the check.
                 if (domainCheck) {
-                    timeRanges.put(trip, new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
-                } else if (!domainCheck) {
+                    needsANewTrip = true;
+                }
+
+                else if (!domainCheck) {
                     offsetDate = trip.getTripEffectiveOnDate().minusDays(7);
 
                     if (offsetDate.isEqual(entry.getValue().getSecond())) {
                         entry.getValue().setSecond(trip.getTripNoLongerEffectiveOnDate());
                     } else {
-                        timeRanges.put(trip, new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
+                        needsANewTrip = true;
                     }
                 }
+            }
+            if (needsANewTrip) {
+                timeRanges.put(trip, new Range<>(trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate()));
             }
         }
 
@@ -106,7 +130,14 @@ public class ConsolidateTripUtil {
     }
 
     protected Integer calculateCustomHashCode(final ConsolidatedTrip consolidatedTrip) {
-        return Objects.hash(consolidatedTrip.getDirectionId(), consolidatedTrip.getTripStops(), consolidatedTrip.getRouteId());
+        Integer integerHashCode = 0;
+        for (StopTimes stopTimes: consolidatedTrip.getTripStops()) {
+            integerHashCode += stopTimes.getStopId().hashCode() + stopTimes.getDepartureTime().hashCode()
+                    + stopTimes.getArrivalTime().hashCode() + stopTimes.getStopSequence().hashCode()
+                    + stopTimes.getPickupType() + stopTimes.getDropOffType();
+        }
+
+        return Objects.hash(consolidatedTrip.getDirectionId(), consolidatedTrip.getRouteId(), integerHashCode);
     }
 
      /**
@@ -117,15 +148,16 @@ public class ConsolidateTripUtil {
      * @return An aggregate of all operating patterns.
      */
      protected OperatingPattern reduceOpertatingPattern(List<ConsolidatedTrip> consolidatedTripSubList) {
-        OperatingPattern ops = new OperatingPattern();
+        OperatingPattern ops = new OperatingPattern().monday(false).tuesday(false).wednesday(false)
+                .thursday(false).friday(false).saturday(false).sunday(false);
         for (ConsolidatedTrip trip: consolidatedTripSubList) {
             ops.setMonday(ops.getMonday() || trip.getOperatingPattern().getMonday());
-            ops.setMonday(ops.getTuesday() || trip.getOperatingPattern().getTuesday());
-            ops.setMonday(ops.getWednesday() || trip.getOperatingPattern().getWednesday());
-            ops.setMonday(ops.getThursday() || trip.getOperatingPattern().getThursday());
-            ops.setMonday(ops.getFriday() || trip.getOperatingPattern().getFriday());
-            ops.setMonday(ops.getSaturday() || trip.getOperatingPattern().getSaturday());
-            ops.setMonday(ops.getSunday() || trip.getOperatingPattern().getSunday());
+            ops.setTuesday(ops.getTuesday() || trip.getOperatingPattern().getTuesday());
+            ops.setWednesday(ops.getWednesday() || trip.getOperatingPattern().getWednesday());
+            ops.setThursday(ops.getThursday() || trip.getOperatingPattern().getThursday());
+            ops.setFriday(ops.getFriday() || trip.getOperatingPattern().getFriday());
+            ops.setSaturday(ops.getSaturday() || trip.getOperatingPattern().getSaturday());
+            ops.setSunday(ops.getSunday() || trip.getOperatingPattern().getSunday());
         }
         return ops;
     }
