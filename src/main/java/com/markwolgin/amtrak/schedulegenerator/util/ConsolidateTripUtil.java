@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -89,7 +90,17 @@ public class ConsolidateTripUtil {
                 else if (!domainCheck) {
                     offsetDate = trip.getTripEffectiveOnDate().minusDays(7);
 
-                    if (offsetDate.isEqual(entry.getValue().getSecond())) {
+                    if (offsetDate.isEqual(entry.getValue().getSecond())
+                            || offsetDate.isBefore(entry.getValue().getSecond())) {
+
+
+                        //Todo: Maybe find a way to place a calander date on a calenader, apply the opperating pattern,
+                        // and see if any days inbetween will be missed.  If so, add new trip.
+//                        long dayDelta = ChronoUnit.DAYS.between(trip.getTripNoLongerEffectiveOnDate(), entry.getValue().getFirst());
+//                        Calendar calendar = Calendar.getInstance();
+//                        calendar.set(trip.getTripNoLongerEffectiveOnDate().getYear(),
+//                                trip.getTripNoLongerEffectiveOnDate().getMonthValue(), trip.getTripNoLongerEffectiveOnDate().getDayOfMonth());
+
                         entry.getValue().setSecond(trip.getTripNoLongerEffectiveOnDate());
                     } else {
                         needsANewTrip = true;
