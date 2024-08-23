@@ -1,5 +1,7 @@
 package com.markwolgin.amtrak.schedulegenerator.model;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -37,5 +39,8 @@ public class TimetableFrame {
      * Every stop that can appear in the service.
      */
     private final Map<String, Stops> mapOfAllPossibleStops;
+
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
 }

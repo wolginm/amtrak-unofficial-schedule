@@ -58,8 +58,11 @@ public class TimetableUtil {
      */
     private TimetableFrame generateTimetableFromRoute(ConsolidatedRoute consolidatedRoute) {
         for (ConsolidatedTrip trip : consolidatedRoute.getTripList().get().values()) {
-            log.debug("\t{}:{}\t{}", trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate().plusDays(6), (trip.getTripEffectiveOnDate().isBefore(LocalDate.now()) &&
-                    trip.getTripNoLongerEffectiveOnDate().plusDays(6).isAfter(LocalDate.now())) || (trip.getTripEffectiveOnDate().isEqual(LocalDate.now()) || trip.getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
+            log.debug("\t{}:{}\t{}", trip.getTripEffectiveOnDate(), trip.getTripNoLongerEffectiveOnDate().plusDays(7),
+                    ((trip.getTripEffectiveOnDate().isBefore(LocalDate.now()) ||  (trip.getTripEffectiveOnDate().isEqual(LocalDate.now()))) &&
+                    trip.getTripNoLongerEffectiveOnDate().plusDays(7).isAfter(LocalDate.now()))
+                            || (trip.getTripEffectiveOnDate().isEqual(LocalDate.now())
+                            || trip.getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
         }
 
         Map<Boolean, TimetableEntry> weekday = new HashMap<>(2);
@@ -75,8 +78,16 @@ public class TimetableUtil {
 
         sunday.put(false, this.buildTimetableEntry(consolidatedRoute, SUNDAY, false));
         sunday.put(true, this.buildTimetableEntry(consolidatedRoute, SUNDAY, true));
+
+        LocalDate start, end;
+        start = LocalDate.MAX;
+        end = LocalDate.MIN;
+//        for (TimetableEntry timetableEntry : weekday.values()) {
+//            start = start.isBefore(timetableEntry.getPossibleTrips())
+//        }
+
         TimetableFrame timetable = new TimetableFrame(consolidatedRoute.getRouteLongName(), consolidatedRoute.getRouteId(),
-                weekday, saturday, sunday, consolidatedRoute.getStopOrder(), consolidatedRoute.getAllStops().get());
+                weekday, saturday, sunday, consolidatedRoute.getStopOrder(), consolidatedRoute.getAllStops().get(), start, end);
 
         String defaultFirstStation = consolidatedRoute.getStopOrder().get(0);
 
@@ -101,10 +112,11 @@ public class TimetableUtil {
                 .entrySet()
                 .stream()
                 .filter(entry -> {
-            return (entry.getValue().getOperatingPattern().equals(matchingPattern)) &&
+            return (this.tripIsEqualEnough(entry.getValue().getOperatingPattern(), (matchingPattern))) &&
                     ((entry.getValue().getDirectionId() == 1) == direction) &&
-                    ((entry.getValue().getTripEffectiveOnDate().isBefore(LocalDate.now()) &&
-                            entry.getValue().getTripNoLongerEffectiveOnDate().plusDays(6).isAfter(LocalDate.now())) ||
+                    (((entry.getValue().getTripEffectiveOnDate().isBefore(LocalDate.now())
+                            || (entry.getValue().getTripEffectiveOnDate().isEqual(LocalDate.now()))) &&
+                            entry.getValue().getTripNoLongerEffectiveOnDate().plusDays(7).isAfter(LocalDate.now())) ||
                                 (entry.getValue().getTripEffectiveOnDate().isEqual(LocalDate.now()) ||
                                         entry.getValue().getTripNoLongerEffectiveOnDate().isEqual(LocalDate.now())));
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
@@ -112,5 +124,15 @@ public class TimetableUtil {
                 direction,
                 consolidatedRoute.getIndexDirZero(),
                 consolidatedRoute.getIndexDirOne());
+    }
+
+    protected boolean tripIsEqualEnough(OperatingPattern trip, OperatingPattern pattern) {
+        return (trip.getMonday().equals(pattern.getMonday()) && pattern.getMonday().equals(true)) ||
+                (trip.getTuesday().equals(pattern.getTuesday()) && pattern.getTuesday().equals(true)) ||
+                (trip.getWednesday().equals(pattern.getWednesday()) && pattern.getWednesday().equals(true)) ||
+                (trip.getThursday().equals(pattern.getThursday()) && pattern.getThursday().equals(true)) ||
+                (trip.getFriday().equals(pattern.getFriday()) && pattern.getFriday().equals(true)) ||
+                (trip.getSaturday().equals(pattern.getSaturday()) && pattern.getSaturday().equals(true)) ||
+                (trip.getSunday().equals(pattern.getSunday()) && pattern.getSunday().equals(true));
     }
 }

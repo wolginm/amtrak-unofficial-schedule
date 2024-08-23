@@ -1,8 +1,11 @@
 package com.markwolgin.amtrak.schedulegenerator.view.text;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -17,6 +20,7 @@ import com.markwolgin.amtrak.schedulegenerator.model.TimetableEntry;
 
 import com.markwolgin.amtrak.schedulegenerator.models.ConsolidatedTrip;
 import com.markwolgin.amtrak.schedulegenerator.models.StopTimes;
+import com.markwolgin.amtrak.schedulegenerator.util.OperatingPatternPrinterUtil;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +34,10 @@ public class TextSchedule implements IViewSchedule {
     private final String station_horizontial_format
         = "| %s | %s |";
 
-    private final int DEFAULT_MAX_LENGTH = 8;
+    private final int DEFAULT_MAX_LENGTH = 24;
     private final int DEFAULT_BAR_LENGTH = DEFAULT_MAX_LENGTH + 4;
+
+
 
     /**
      * Builds the general schedule, Weekday, Saturday, and Sunday; in both directions.
@@ -40,15 +46,28 @@ public class TextSchedule implements IViewSchedule {
      */
     @Override
     public String buildSchedule(TimetableFrame timetable) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(this.buildWeekdaySchedule(timetable, false));
-        stringBuilder.append(this.buildWeekdaySchedule(timetable, true));
-        stringBuilder.append(this.buildSaturdaySchedule(timetable, false));
-        stringBuilder.append(this.buildSaturdaySchedule(timetable, true));
-        stringBuilder.append(this.buildSundaySchedule(timetable, false));
-        stringBuilder.append(this.buildSundaySchedule(timetable, true));
-        return stringBuilder.toString();
+        return this.buildSchedule(timetable, Date.from(Instant.now()),
+                Date.from(Instant.now().plus( 7, ChronoUnit.DAYS)));
         
+    }
+
+    /**
+     * Builds the general schedule, Weekday, Saturday, and Sunday; in both directions.
+     * @param timetableFrame    {@link TimetableFrame} holding all {@link TimetableEntry}s.
+     * @param startDate         Start Date for the Schedule.
+     * @param endDate           End date for the Schedule.
+     * @return                  The composite schedule.
+     */
+    @Override
+    public String buildSchedule(TimetableFrame timetableFrame, Date startDate, Date endDate) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(this.buildWeekdaySchedule(timetableFrame, false));
+        stringBuilder.append(this.buildWeekdaySchedule(timetableFrame, true));
+        stringBuilder.append(this.buildSaturdaySchedule(timetableFrame, false));
+        stringBuilder.append(this.buildSaturdaySchedule(timetableFrame, true));
+        stringBuilder.append(this.buildSundaySchedule(timetableFrame, false));
+        stringBuilder.append(this.buildSundaySchedule(timetableFrame, true));
+        return stringBuilder.toString();
     }
 
     @Override
@@ -147,6 +166,8 @@ public class TextSchedule implements IViewSchedule {
                                final Boolean direction) {
         StringBuilder header = new StringBuilder("");
         String trainBar = new String("");
+        String patternBar = new String("");
+
         ConsolidatedTrip consolidatedTrip;
         NavigableSet<LocalTime> navigableSet = timetableEntry.getTripOrder().navigableKeySet();
 
@@ -160,7 +181,8 @@ public class TextSchedule implements IViewSchedule {
 
         int barLength = DEFAULT_BAR_LENGTH;
         String nextElement;
-        trainBar = trainBar.concat("| STATION  |");
+        trainBar = trainBar.concat(("| %-" + maxLength.get() + "s |").formatted("STATION"));
+        patternBar = patternBar.concat("| %s |".formatted(" ".repeat(maxLength.get())));
         // Map of Trip Time -> Trip
         for (LocalTime localTime : navigableSet) {
 
@@ -169,12 +191,21 @@ public class TextSchedule implements IViewSchedule {
                     .formatted(Long.toString(consolidatedTrip.getTripShortName()));
             trainBar = trainBar.concat(nextElement);
             barLength += nextElement.length();
+
+            nextElement = (" %-" + maxLength.get() + "s |")
+                    .formatted(OperatingPatternPrinterUtil.generateSmallOperatingPattern(
+                            consolidatedTrip.getOperatingPattern()));
+            patternBar = patternBar.concat(nextElement);
         }
+
+
 
         header.append("/");
         header.append("=".repeat(barLength-2));
         header.append("\\\n");
         header.append(trainBar);
+        header.append("\n");
+        header.append(patternBar);
         header.append("\n");
         header.append("*");
         header.append("-".repeat(barLength-2));
@@ -262,7 +293,8 @@ public class TextSchedule implements IViewSchedule {
 
         StringBuilder canvas = new StringBuilder();
 
-        canvas.append(this.buildTitleCard(timetable.getScheduleName(), LocalDate.now(), LocalDate.now(), announcements));
+        canvas.append(this.buildTitleCard(timetable.getScheduleName(), timetable.getStartDate(),
+                timetable.getEndDate(), announcements));
         canvas.append(this.buildHeader(timetable.getWeekdayTripMap().get(direction), false));
         canvas.append(this.buildScheduleTimeEntries(timetable.getWeekdayTripMap().get(direction), timetable.getDefaultStationOrder(), direction));;
 
